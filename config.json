@@ -1,0 +1,5 @@
+{
+  "sleepTimeSecs":2,
+  "retryTimes":5,
+  "sendToEmail":"308802880@qq.com"
+}
