@@ -5,7 +5,11 @@ import os
 import json
 import sys
 import tempfile
+# bcs
 from baidupcsapi import PCS
+# Dropbox
+import dropbox
+# Email
 import smtplib
 from email import Encoders
 from email.header import Header
@@ -13,6 +17,7 @@ from email.MIMEBase import MIMEBase
 from email.mime.text import MIMEText
 from email.utils import parseaddr, formataddr
 from email.mime.multipart import MIMEMultipart
+
 
 BASE_FOLDER='../Warehouse/'
 
@@ -67,7 +72,17 @@ def sendEmail(fileName, account, password, conf):
     # 发送邮件
     server.sendmail(account, [conf['snedToEmail']], msg.as_string())
     server.quit()
-    pass
+
+'''
+    Send emails by - http://python-emails.readthedocs.io/en/latest/
+'''
+def sendEmailModern():
+    m = emails.Message(html=T("<html><p>Build passed: {{ project_name }} <img src='cid:icon.png'> ..."),
+                   text=T("Build passed: {{ project_name }} ..."),
+                   subject=T("Passed: {{ project_name }}#{{ build_id }}"),
+                   mail_from=("CI", "ci@mycompany.com"))
+    m.attach(filename="1.zip", data=open("../Mailbox/1.zip", "rb"))
+    response = m.send(to='308802880@qq.com', smtp={"host":"smtp.qq.com", "port": 465, "ssl": True})
 
 '''
     上传至百度云
@@ -98,33 +113,33 @@ def sendBCS(fileName, account, password):
     print ret.content
     print 'Uploading Successful'
 
-'''
-    send all folder
-'''
-def sendBCSFolder(folder, account, password):
-    print 'Logging to bcs...'
-    pcs = PCS(account, password)
-    print 'Logging successful, Start uploading...'
-    for img in os.listdir(folder):
-        print 'Uploading file: %s' % img
-        ret = pcs.upload('/Alfred/Folders/%s' % os.path.basename(folder), open('../Warehouse/%s' % img, 'rb').read(), img)
-    print 'Uploading Successful'
+def sendToDropbox(fileName):
+    client = dropbox.client.DropboxClient('pucUmerlQfAAAAAAAAAADwKFC8Xooc8y_wSFL3y0yicY63_72gvapKlnT1_PGKtD')
+    print 'linked account: ', client.account_info()
+
+    f = open(fileName, 'rb')
+    response = client.put_file(fileName, f)
+    print 'uploaded: ', response
+
+    folder_metadata = client.metadata('/')
+    print 'metadata: ', folder_metadata
+
+    pass
 
 def __test__():
     # 读取JSON文件
     account = json.load(file('../account.json'))
     conf = json.load(file('../config.json'))
     # 打包文件
-    zipFolder('../Warehouse/')
+    # zipFolder('../Warehouse/')
     # 上传单个文件至百度云
-    sendBCS('../Mailbox/1.zip', account['bcs']['username'], account['bcs']['password'])
+    # sendBCS('../Mailbox/1.zip', account['bcs']['username'], account['bcs']['password'])
     # 上传文件夹到百度云
-    sendBCSFolder('../Warehouse', account['bcs']['username'], account['bcs']['password'])
+    # sendBCSFolder('../Warehouse', account['bcs']['username'], account['bcs']['password'])
     # 发送邮件提醒
-    sendEmail('../Mailbox/1.zip',
-            account['email']['username'],
-            account['email']['password'],
-            conf)
+    # sendEmail('../Mailbox/1.zip',account['email']['username'],account['email']['password'],conf)
+    # 发送dropBox
+    sendToDropbox('../Mailbox/1.zip')
 
 
 if __name__ == '__main__':
