@@ -109,16 +109,19 @@ def sendBCS(fileName, account, password):
             md5list.append(json.loads(ret.content)['md5'])
             os.remove(smallfile)
     os.rmdir(tmpdir)
-    ret = pcs.upload_superfile('/Alfred/Whole/%s' % fileName, md5list)
+    ret = pcs.upload_superfile('/Alfred/Whole/%s' % os.path.basename(fileName), md5list)
     print ret.content
     print 'Uploading Successful'
 
-def sendToDropbox(fileName):
-    client = dropbox.client.DropboxClient('pucUmerlQfAAAAAAAAAADwKFC8Xooc8y_wSFL3y0yicY63_72gvapKlnT1_PGKtD')
+'''
+    发送到dropbox
+'''
+def sendToDropbox(fileName, token):
+    client = dropbox.client.DropboxClient(token)
     print 'linked account: ', client.account_info()
 
     f = open(fileName, 'rb')
-    response = client.put_file(fileName, f)
+    response = client.put_file('/%s' % os.path.basename(fileName), f)
     print 'uploaded: ', response
 
     folder_metadata = client.metadata('/')
@@ -131,15 +134,16 @@ def __test__():
     account = json.load(file('../account.json'))
     conf = json.load(file('../config.json'))
     # 打包文件
-    # zipFolder('../Warehouse/')
+    zipFolder('../Warehouse/')
     # 上传单个文件至百度云
     # sendBCS('../Mailbox/1.zip', account['bcs']['username'], account['bcs']['password'])
     # 上传文件夹到百度云
     # sendBCSFolder('../Warehouse', account['bcs']['username'], account['bcs']['password'])
-    # 发送邮件提醒
-    # sendEmail('../Mailbox/1.zip',account['email']['username'],account['email']['password'],conf)
     # 发送dropBox
-    sendToDropbox('../Mailbox/1.zip')
+    sendToDropbox('../Mailbox/1.zip', account['dropbox'])
+    # 发送邮件提醒
+    sendEmail('../Mailbox/1.zip',account['email']['username'],account['email']['password'],conf)
+
 
 
 if __name__ == '__main__':
