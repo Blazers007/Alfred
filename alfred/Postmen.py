@@ -5,8 +5,6 @@ import os
 import json
 import sys
 import tempfile
-# bcs
-from baidupcsapi import PCS
 # Dropbox
 import dropbox
 # Email
@@ -91,43 +89,6 @@ def sendEmail(fileName, account, password, conf):
     server.sendmail(account, [conf['sendTo']], msg.as_string())
     server.quit()
 
-def sendBCS(fileName, account, password):
-    """上传至百度云
-
-    未保存Cookie/Cookie过期的时候会要求输入指定网址提供的验证码
-
-    Args:
-        fileName:   上传的文件路径
-        account:    百度云账号
-        password:   百度云密码
-    """
-    print('Logging to bcs')
-    # TODO: if need to enter the code send an email to me with a form-data url whick i can enter the code
-    pcs = PCS(account, password)
-    print('Logging successful, Start uploading...')
-    chinksize = 1024*1024*2
-    fid = 1
-    md5list = []
-    tmpdir = tempfile.mkdtemp('bdpcs')
-    with open(fileName, 'rb') as infile:
-        while 1:
-            data = infile.read(chinksize)
-            if len(data) == 0:
-                break
-            smallfile = os.path.join(tmpdir, 'tmp%d' % fid)
-            with open(smallfile, 'wb') as f:
-                f.write(data)
-            print('Uploading chunk%d size %d' % (fid, len(data)))
-            fid += 1
-            ret = pcs.upload_tmpfile(open(smallfile, 'rb'))
-            md5list.append(json.loads(ret.content)['md5'])
-            os.remove(smallfile)
-    os.rmdir(tmpdir)
-    ret = pcs.upload_superfile('/Alfred/Whole/%s' % os.path.basename(fileName), md5list)
-    print(ret.content)
-    print('Uploading Successful')
-
-
 def sendToDropbox(fileName, token):
     '''发送文件到dropbox
     Args:
@@ -151,11 +112,7 @@ def __test__():
     account = json.load(file('../account.json'))
     conf = json.load(file('../config.json'))
     # 打包文件
-    zipFolder('../Warehouse/')
-    # 上传单个文件至百度云
-    # sendBCS('../Mailbox/1.zip', account['bcs']['username'], account['bcs']['password'])
-    # 上传文件夹到百度云
-    # sendBCSFolder('../Warehouse', account['bcs']['username'], account['bcs']['password'])
+    # zipFolder('../Warehouse/')
     # 发送DropBox
     sendToDropbox('../Mailbox/1.zip', account['dropbox'])
     # 发送邮件提醒
