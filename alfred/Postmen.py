@@ -9,9 +9,9 @@ import tempfile
 import dropbox
 # Email
 import smtplib
-from email import Encoders
+from email import encoders
 from email.header import Header
-from email.MIMEBase import MIMEBase
+from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email.utils import parseaddr, formataddr
 from email.mime.multipart import MIMEMultipart
@@ -109,15 +109,28 @@ def sendToDropbox(fileName, token):
 
 def __test__():
     # 读取JSON文件
-    account = json.load(file('../account.json'))
-    conf = json.load(file('../config.json'))
-    # 打包文件
-    # zipFolder('../Warehouse/')
-    # 发送DropBox
-    sendToDropbox('../Mailbox/1.zip', account['dropbox'])
-    # 发送邮件提醒
-    sendEmail('../Mailbox/1.zip',account['email']['username'],account['email']['password'],conf)
-
+    with open('../account.json', 'r') as f:
+        try:
+            account = json.load(f)
+        except Exception as e:
+            print(e)
+            account = None
+    with open('../config.json', 'r') as f:
+        try:
+            conf = json.load(f)
+        except Exception as e:
+            print(e)
+            conf = None
+    if account and conf:
+        print('Loading config successful')
+        # 打包文件
+        # zipFolder('../Warehouse/')
+        # 发送DropBox
+        sendToDropbox('../Mailbox/1.zip', account['dropbox'])
+        # 发送邮件提醒
+        sendEmail('../Mailbox/1.zip',account['email']['username'],account['email']['password'],conf)
+    else:
+        print('Error: You should spicific the right config in the root volumn')
 
 if __name__ == '__main__':
     __test__()
