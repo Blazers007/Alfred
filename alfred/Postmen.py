@@ -117,7 +117,7 @@ def sendBCS(fileName, account, password):
             smallfile = os.path.join(tmpdir, 'tmp%d' % fid)
             with open(smallfile, 'wb') as f:
                 f.write(data)
-            print 'Uploading chunk%d size %d' % (fid, len(data))
+            print('Uploading chunk%d size %d' % (fid, len(data)))
             fid += 1
             ret = pcs.upload_tmpfile(open(smallfile, 'rb'))
             md5list.append(json.loads(ret.content)['md5'])
