@@ -43,9 +43,7 @@ def _format_addr(s):
         返回对应的Header对象
     """
     name, addr = parseaddr(s)
-    return formataddr(( \
-        Header(name, 'utf-8').encode(), \
-        addr.encode('utf-8') if isinstance(addr, unicode) else addr))
+    return formataddr((Header(name, 'utf-8').encode(), addr))
 
 
 def sendEmail(fileName, account, password, conf):
