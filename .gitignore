@@ -91,3 +91,6 @@ ENV/
 # DownloadFiles
 Warehouse/*
 Mailbox/*
+.DS_Store
+.cookies
+account.json

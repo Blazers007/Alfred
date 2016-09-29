@@ -1,5 +1,8 @@
 {
   "sleepTimeSecs":2,
   "retryTimes":5,
-  "sendToEmail":"308802880@qq.com"
+  "sendTo":"308802880@qq.com",
+  "SMTP":"smtp.qq.com",
+  "SMTPPort":465,
+  "SSL":true
 }

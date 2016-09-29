@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#coding:utf-8
+#coding=utf-8
 import importlib
 import os
 import DatabaseManager
@@ -30,14 +30,14 @@ def loadTargetPlugin(pluginName):
 # - Parallel execute -  定时执行ZIP打包与Email/上传网盘任务
 
 def listAllValidPlugins():
-    print '加载插件列表\n'
+    print('加载插件列表\n')
     plugins = []
     for target in os.listdir(PLUGIN_PATH):
         if os.path.isdir(PLUGIN_PATH+target):
             # TODO: 调用测试的Testing方法确保所有需要的方法都拥有!!!
-            print '  - 插件:\t%s' % target
+            print('  - 插件:\t%s' % target)
             plugins.append(target)
-    print '\n总共插件数量%s' % len(plugins)
+    print('\n总共插件数量%s' % len(plugins))
     return plugins
 
 

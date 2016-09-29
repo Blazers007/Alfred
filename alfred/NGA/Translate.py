@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#coding:utf-8
+#coding=utf-8
 import requests
 import time
 from bs4 import BeautifulSoup
@@ -20,7 +20,8 @@ html_doc = """
 """
 
 def __test__():
-    # 模拟登陆 拼接参数
+    """模拟登陆 拼接参数
+    """
     # 保存Cookie
     headers = {
         'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -37,12 +38,11 @@ def __test__():
     response = requests.get(URL.HOME_PAGE+'/thread.php?fid=-7', headers=headers)
     response.encoding = 'GBK'
     # loop different page
-    # print html_doc
     soup = BeautifulSoup(response.text, 'html.parser')
     # Parse posts in the page and saving to database [With Compare]
     posts = []
     for topic in soup.find_all('a', class_='topic'):
-        # print '%s\t%s' % (topic.string, topic.get('href'))
+        print('%s\t%s' % (topic.string, topic.get('href')))
         posts.append((topic.get('href'), topic.string))
     # Parse user iamges from each post
     downloadUrlList = []
@@ -55,19 +55,16 @@ def __test__():
         for img in re.findall(r'\[img\](.*?)\[\/img\]', soup.get_text()):
             if img.startswith('http'):
                 # 引用类型 - 绝对路径URL
-                print img
+                print(img)
                 downloadUrlList.append(img)
             elif img.startswith('.'):
                 # 附件类型 - 相对路径URL
                 img = 'http://img.nga.cn/attachments/' + img[1:]
-                print img
+                print(img)
                 downloadUrlList.append(img)
     # 返回URL数组列表
-        # http://img.nga.cn/attachments/mon_201609/25/-7Q2f-2dpdK22T3cSku-ku.jpg
-        # for avatar in soup.find_all('img', attrs={'class': 'avatar'}):
-            # print avatar.get('src')
     # Testing 下载 - TODO: 添加故障重试机制
-    print 'Downloading....'
+    print('Downloading....')
     validTypes = ['jpg', 'jpeg', 'gif', 'png']
     defaultType = 'jpg'
     index = 1
