@@ -20,7 +20,7 @@ from email.mime.multipart import MIMEMultipart
 BASE_FOLDER='../Warehouse/'
 
 
-def zipFolder(folder):
+def _zipFolder(folder):
     """打包指定的文件夹以及文件夹一级目录内的所有文件
 
     Args:
@@ -46,7 +46,7 @@ def _format_addr(s):
     return formataddr((Header(name, 'utf-8').encode(), addr))
 
 
-def sendEmail(fileName, account, password, conf):
+def _sendEmail(fileName, account, password, conf):
     """发送邮件
 
     Args:
@@ -87,12 +87,12 @@ def sendEmail(fileName, account, password, conf):
     server.sendmail(account, [conf['sendTo']], msg.as_string())
     server.quit()
 
-def sendToDropbox(fileName, token):
-    '''发送文件到dropbox
+def _sendToDropbox(fileName, token):
+    """发送文件到dropbox
     Args:
         fileName:   发送的文件
         token:      Dropbox的API Token
-    '''
+    """
     client = dropbox.client.DropboxClient(token)
     print('linked account: ', client.account_info())
 
@@ -102,8 +102,12 @@ def sendToDropbox(fileName, token):
 
     folder_metadata = client.metadata('/')
     print('metadata: ', folder_metadata)
-
     pass
+
+def do_the_job():
+    """定时任务/外部可调用方法: 如果当前没有其他任务则占用文件系统开始打包
+    """
+
 
 def __test__():
     # 读取JSON文件

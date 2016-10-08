@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 #coding=utf-8
+from pymongo import MongoClient
+from datetime import datetime
+from functools import reduce
+import operator
 import requests
+# 数据库对象
+db = MongoClient().test
+collection = db['NGA']
 
 def download(urlList, savingFolder):
     # 遍历文件并下载
@@ -13,3 +20,78 @@ def download(urlList, savingFolder):
                 f.write(chunk)
                 f.flush()
             f.close()
+
+def retry_when_idle():
+    """定时任务: 遍历数据库中下载失败的列表开始下载
+    """
+    pass
+
+def clean_when_overtime():
+    """定时任务: 清理已经上传完毕的文件夹 以及缓存文件
+    """
+    pass
+
+class STDDownloadBean(object):
+    """图片下载结构
+
+    Attributes:
+        url:        <string>    图片的url路径
+        download:   <boolean>   是否已经下载成功
+        upload:     <boolean>   是否已经发送成功
+        retry_times: <int>      尝试下载的次数
+    """
+    def __init__(self, url, retry_times):
+        # 没有则初始化并插入
+        self.url = url
+        self.retry_times = retry_times
+
+    def download(self):
+        """开始下载
+        """
+        # TODO: 若目前有打包任务 则pass等待下一次
+        # 超出失败次数则标志放弃任务
+        try:
+            r = requests.get(self.url, stream=True)
+            with open('../Warehouse/1.' + fileType, 'wb') as f:
+                for chunk in r.iter_content(10*1024):
+                    f.write(chunk)
+                    f.flush()
+                f.close()
+        except:
+            self.retry_times += 1
+        finally:
+            if self.retry_times > 10:
+                # 删除 并处收集信息 已邮件形式发送
+                pass
+
+def download_post():
+    """下载 - 封装文件夹 - 集合打包  每日四次扫描 一次打包发送
+        Folder: alfred[打包日期] -----
+                                    - [Post_Init_Title] ----
+                                                            - Pic1.type
+                                                            - Pic2.type
+                                                            - Pic3.type
+                                                            - html1.page
+                                                            - html2.page
+                                                            - titles.txt (echo append)
+                                    - [Post_Init_Title] ----
+    """
+    # 查找出没有完成的Post对象开始下载 下载到指定文件夹 该文件夹一段时间后被删除(目前设定30天) @ Cleaner.py
+    pass
+
+
+
+# For testing
+def test():
+    items = collection.find({'images.download': False}, {'_id': False, 'images': True})
+    # 测试 - 查找没有下载的URL
+    pics = list(filter(lambda x: not x['download'], reduce(operator.add, list(map(lambda x: x['images'], items)))))
+    print(len(pics))
+    for pic in pics:
+        print('Download? %s \t Url: %s\n' % ('True' if pic['download'] else 'False', pic['url']))
+    # 正式使用 需要Title字段作为文件夹名称
+
+
+if __name__ == '__main__':
+    test()
+    pass
