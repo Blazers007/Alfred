@@ -26,11 +26,6 @@ def retry_when_idle():
     """
     pass
 
-def clean_when_overtime():
-    """定时任务: 清理已经上传完毕的文件夹 以及缓存文件
-    """
-    pass
-
 class STDDownloadBean(object):
     """图片下载结构
 
@@ -71,13 +66,16 @@ def download_post():
                                                             - Pic1.type
                                                             - Pic2.type
                                                             - Pic3.type
-                                                            - html1.page
-                                                            - html2.page
-                                                            - titles.txt (echo append)
+                                                            - content1.html
+                                                            - content2.html
+                                                            - db.json(DataBase)
                                     - [Post_Init_Title] ----
     """
     # 查找出没有完成的Post对象开始下载 下载到指定文件夹 该文件夹一段时间后被删除(目前设定30天) @ Cleaner.py
-    pass
+    # 查看是否已经有文件夹 没有则创建文件夹
+    # 查看更新的页面内容 写 html 文件
+    # 覆盖db.json数据库内容
+
 
 
 

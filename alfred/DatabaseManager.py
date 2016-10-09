@@ -54,7 +54,13 @@ class STDDataBean(object):
             "images": list(map(lambda x: {'url': x, 'download': False, 'upload': False, 'retry_times': 0}, list(self.images))),
             "time": self.time
         }
-        print(collection.insert_one(obj).inserted_id)
+        ret = collection.insert_one(obj)
+        print(ret)
+        if not ret:
+            print('[Insert Failed!] URL -> %s' % self.url)
+            return False
+        print('[Insert Successfully]: ID -> %s' % ret.inserted_id)
+        return True
 
     def __update__(self):
         """添加新的image到数组中去 数组必须已经保存过才能正确更新
@@ -77,22 +83,72 @@ class STDDataBean(object):
         saved_images = set(list(map(lambda x: x['url'], saved['images'])))
         addition_images = self.images - saved_images
         # Update all
-        _id = collection.update_one({'url': self.url},
+        ret = collection.update_one({'url': self.url},
             {'$pushAll':{
                 'titles': list(addition_titles),
                 'contents': list(addition_contents),
                 'images': list(map(lambda x: {'url': x, 'download': False, 'upload': False, 'retry_times': 0}, list(addition_images)))
-            }}).upserted_id
-        print('[Update Successfully]:    Titles: %d\tContents: %d\tImages: %d' % (len(addition_titles), len(addition_contents), len(addition_images)))
+            }})
+        if not ret.modified_count:
+            print('[Update Failed!] URL -> %s' % self.url)
+            return False
+        if len(addition_titles) + len(addition_contents) + len(addition_images):
+            print('[Update Successfully]:    Titles: %d\tContents: %d\tImages: %d  Ret: %s'
+                    % (len(addition_titles), len(addition_contents), len(addition_images), ret))
+        else:
+            print('[No Contents Part Changes]')
+        return True
 
     # save
     def save(self):
         """ 保存数据 内部分为update与insert
+        Return:
+            boolean 执行成功与否
         """
         if collection.count({'url': self.url}):
-            self.__update__()
+            return self.__update__()
         else:
-            self.__insert__()
+            return self.__insert__()
+
+    def mark_download_success(self, img_url):
+        """设置下载某张图片成功
+        """
+        if not self.save():
+            return
+        ret = collection.update_one({'url': self.url, 'images.url': img_url}, {'$set':{'images.$.download': True}})
+        if not ret.modified_count:
+            print('[Mark Download Failed!] URL -> %s' % self.url)
+        else:
+            print('[Mark Download Successfully]')
+
+    def mark_upload_success(self, img_url):
+        """设置上传某张图片成功
+        """
+        if not self.save():
+            return
+        ret = collection.update_one({'url': self.url, 'images.url': img_url}, {'$set':{'images.$.upload': True}})
+        if not ret.modified_count:
+            print('[Mark Upload Failed!] URL -> %s' % self.url)
+        else:
+            print('[Mark Upload Successfully]')
+
+
+    def increase_download_times(self, img_url):
+        """增加某张图片的下载次数
+        """
+        if not self.save():
+            return
+        ret = collection.update_one({'url': self.url, 'images.url': img_url}, {'$inc':{'images.$.retry_times': 1}})
+        if not ret.modified_count:
+            print('[Increase Failed!] URL -> %s' % self.url)
+        else:
+            print('[Increase Successfully]')
+
+    @staticmethod
+    def create_beans():
+        """
+        """
+        pass
 
 def __test__():
     """测试方法
@@ -101,12 +157,14 @@ def __test__():
     img = 'http://mt1.baidu.com/timg?wh_rate=0&wapiknow&quality=100&size=w250&sec=0&di=3cb34a265801b5bc6e830d82a7e88135&src=http%3A%2F%2Fd.hiphotos.baidu.com%2Fzhidao%2Fwh%253D800%252C450%2Fsign%3D78f6a711ff03918fd78435c2610d0aa3%2F9f510fb30f2442a7c2e20d54d943ad4bd0130256.jpg'
     # Tesing specific forumn name
     for i in range(10):
-        a = STDDataBean(url=url+str(i), author='author', title='天青色等烟雨而我在等你', content='天青色等烟雨', images=set([img, '44', '88', '99']), time=datetime.now().strftime('%Y-%m-%d %X'))
-        a.save()
-        # Update download status
-    collection.update_many({'images.url': img}, {'$inc':{'images.$.retry_times': 1}})
-    collection.update_many({'images.url': img}, {'$set':{'images.$.upload': True}})
-    collection.update_many({'images.url': img}, {'$set':{'images.$.download': True}})
+        a = STDDataBean(url=url+str(i), author='author', title='天青色等烟雨而我在等你', content='天青色等烟雨12', images=set([img, '44', '88', '99', 'sb1']), time=datetime.now().strftime('%Y-%m-%d %X'))
+        a.increase_download_times('44')
+        a.mark_upload_success('88')
+        a.mark_download_success('99')
+    #     # Update download status
+    # collection.update_many({'images.url': img}, {'$inc':{'images.$.retry_times': 1}})
+    # collection.update_many({'images.url': img}, {'$set':{'images.$.upload': True}})
+    # collection.update_many({'images.url': img}, {'$set':{'images.$.download': True}})
     # print(collection.find_one({'images.url': '8899174'}))
 
 if __name__ == "__main__":
