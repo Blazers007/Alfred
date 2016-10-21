@@ -12,5 +12,5 @@ An old ~~gentlemen~~ who help collecting photos from the specific website.
 ----
 - [x] Send email with attachments
 - [x] Send file to dropbox
-- [x] Schedule tasks automatic, using [crontab](http://www.computerhope.com/unix/ucrontab.htm) command instead of (schedule)[https://github.com/dbader/schedule] for lower resource comsume on 256MB vps. >_< 
+- [x] Schedule tasks automatic, using [crontab](http://www.computerhope.com/unix/ucrontab.htm) command instead of [schedule](https://github.com/dbader/schedule) for lower resource comsume on 256MB vps. >_< 
 - [ ] Plugin wiki
