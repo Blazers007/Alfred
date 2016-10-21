@@ -7,7 +7,7 @@ from datetime import datetime
 db = MongoClient().test
 collection = db['NGA']
 
-class STDDataBean(object):
+class STDPostBean(object):
     """数据存储对象的标准结构
 
     Attributes:
@@ -18,18 +18,6 @@ class STDDataBean(object):
         contents:   <array>     不同版本的内容,只进不出 - (Array Unique)
         images:     <array>     保存的Image路径数组,有新的则append到末端,只进不出 - (Array Unique)
     """
-
-    @staticmethod
-    def parse(datas):
-        """从数据库中的结构解析为对象
-        """
-        if not datas:
-            return None
-        # 遍历 查找或生成数据对象
-        for data in datas:
-            if isinstance(data, STDDataBean):
-                # 查看数据库中是否已经有数据
-                pass
 
     def __init__(self, url, author, title, content, images, time):
         """初始化STDDataBean对象
@@ -43,6 +31,16 @@ class STDDataBean(object):
         self.images = images
         self.time = time
 
+    # Get db obj
+    def __get_db_obj__(self):
+        """返回数据库中的数据
+        Return:
+            数据库中Dict, None 如果没有
+        """
+        return collection.find_one({'url': self.url})
+
+
+    # Insert
     def __insert__(self):
         """只负责初次创建
         """
@@ -62,6 +60,7 @@ class STDDataBean(object):
         print('[Insert Successfully]: ID -> %s' % ret.inserted_id)
         return True
 
+    # Update
     def __update__(self):
         """添加新的image到数组中去 数组必须已经保存过才能正确更新
         Args:
@@ -72,7 +71,9 @@ class STDDataBean(object):
             返回更新的images数组 需要重新下载
         """
         # 取出数据
-        saved = collection.find_one({'url': self.url})
+        saved = self.__get_db_obj__()
+        if not saved:
+            return
         # 标题整合
         saved_titles = set(saved['titles'])
         addition_titles = self.titles - saved_titles
@@ -110,6 +111,17 @@ class STDDataBean(object):
         else:
             return self.__insert__()
 
+    # get all images
+    def get_all_images(self):
+        """返回全部Images 当前的与数据库中的全集
+        """
+        saved = self.__get_db_obj__()
+        if saved:
+            saved_images = set(list(map(lambda x: x['url'], saved['images'])))
+            return list(saved_images + self.images)
+        return list(self.images)
+
+    # download success
     def mark_download_success(self, img_url):
         """设置下载某张图片成功
         """
@@ -121,6 +133,7 @@ class STDDataBean(object):
         else:
             print('[Mark Download Successfully]')
 
+    # upload success
     def mark_upload_success(self, img_url):
         """设置上传某张图片成功
         """
@@ -132,7 +145,7 @@ class STDDataBean(object):
         else:
             print('[Mark Upload Successfully]')
 
-
+    # increase download times
     def increase_download_times(self, img_url):
         """增加某张图片的下载次数
         """
@@ -144,11 +157,23 @@ class STDDataBean(object):
         else:
             print('[Increase Successfully]')
 
+    # not download list
+    def get_undownload_list(self):
+        """返回该Post中未被下载的图片url列表
+        """
+        return filter(lambda x: not x['download'], list(map(lambda x: x['images'], self.get_all_images())))
+
+    # not upload list
+    def get_unupload_list(self):
+        """返回该Post中未被上传的图片url列表
+        """
+        return filter(lambda x: not x['upload'], list(map(lambda x: x['images'], self.get_all_images())))
+
     @staticmethod
-    def create_beans():
+    def get_all():
+        """<静态方法> 返回全部对象
         """
-        """
-        pass
+        return collection.find()
 
 def __test__():
     """测试方法

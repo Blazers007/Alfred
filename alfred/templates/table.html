@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<title>Table</title>
+<table>
+  {% for post in posts %}
+    <tr>
+      <td> {{post.titles[0]}} </td>
+      <td> {{post.author}} </td>
+    </tr>
+  {% endfor %}
+</table>

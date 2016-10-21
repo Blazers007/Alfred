@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #coding=utf-8
-from util.Progress import ProgressBar
+from utils.Progress import ProgressBar
 # 用于定时清理旧文件
 
 def clean_when_overtime():
@@ -8,4 +8,5 @@ def clean_when_overtime():
     """
     pass
 
-ProgressBar.sample()
+if __name__ == '__main__':
+    ProgressBar.sample()
